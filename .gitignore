@@ -1,0 +1,17 @@
+# Ignora tutti i file temporanei
+*.tmp
+*.bak
+*.tar.gz
+*.zip
+*.pt
+*.pth
+*.pkl
+
+# Ignora directory specifiche
+.old/
+deeplab/
+images/
+weights/
+StandardizedMaxLogits/
+results_1/
+results_2/

@@ -1,0 +1,25 @@
+2025-01-02 18:46:59,055 - device          : cuda:4
+2025-01-02 18:46:59,055 - name            : train_3
+2025-01-02 18:46:59,055 - folder          : 4
+2025-01-02 18:46:59,055 - end
+
+2025-01-02 18:46:59,062 - Dataset Creato
+2025-01-02 18:46:59,062 - Training images: 5125
+2025-01-02 18:46:59,063 - Dataloader Creato
+2025-01-02 18:46:59,063 - Training batches: 1281
+2025-01-02 18:47:03,420 - Caricati i pesi: /home/piecestola/space/ML4CV/results_4/train_3/ckpts/weights_mIoU_1.pt
+2025-01-02 18:47:03,421 - Modello caricato correttamente su cuda:4
+
+2025-01-03 01:23:21,359 - Dataset Creati
+2025-01-03 01:23:21,359 - Test images: 1024
+2025-01-03 01:23:21,359 - Anomalies images: 476
+
+2025-01-03 01:23:21,360 - Dataloader Creati
+2025-01-03 01:23:21,360 - Test batches: 256
+2025-01-03 01:23:21,360 - Anomalies batches: 119
+
+2025-01-03 01:23:25,634 - Caricati i pesi: /home/piecestola/space/ML4CV/results_4/train_3/ckpts/weights_mIoU_1.pt
+2025-01-03 01:23:25,634 - Modello caricato correttamente su cuda:4
+
+2025-01-03 01:31:36,190 - AUPR t5: 0.011020833626389503
+2025-01-03 01:35:24,153 - AUPR t6: 0.011175120249390602
