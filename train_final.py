@@ -699,7 +699,7 @@ if __name__ == '__main__':
     # Aggiungi argomenti
     parser.add_argument('--device', type=str, default = find_best_device())
     parser.add_argument('--model', type=str, default = 'mobilenet')
-    parser.add_argument('--mlp', action='store_true')
+    parser.add_argument('--mlp', type=int, default=0)
     parser.add_argument('--vae', action='store_true')
     # Parametri addestramento
     parser.add_argument('--epochs', type=int, default=50)
@@ -713,6 +713,7 @@ if __name__ == '__main__':
     parser.add_argument('--activation', type=str, default='softmax')
     parser.add_argument('--class_weights', action='store_true')
     parser.add_argument('--norm_weights', action='store_true')
+    parser.add_argument('--p', type=float, default=0.3)
     # Caricamento
 
     # Parsing degli argomenti
@@ -838,12 +839,23 @@ if __name__ == '__main__':
         )
         nn.init.xavier_uniform_(model.classifier.classifier[3].modules_list[1].weight)
     elif args.mlp:
-        # Definizione del modello minimale
-        mlp = nn.Sequential(
-            nn.Conv2d(256, 128, kernel_size=1, stride=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128, 13, kernel_size=1, stride=1)
-        )
+        if args.mlp == 1:
+            mlp = nn.Sequential(
+                nn.Conv2d(256, 128, kernel_size=1, stride=1),
+                nn.ReLU(inplace=True),
+                nn.Dropout(p=args.p),
+                nn.Conv2d(128, 13, kernel_size=1, stride=1)
+            )
+        elif args.mlp == 2:
+            mlp = nn.Sequential(
+                nn.Conv2d(256, 128, kernel_size=1, stride=1),
+                nn.ReLU(inplace=True),
+                nn.Dropout(p=args.p),
+                nn.Conv2d(128, 64, kernel_size=1, stride=1),
+                nn.ReLU(inplace=True),
+                nn.Dropout(p=args.p),
+                nn.Conv2d(64, 13, kernel_size=1, stride=1)
+            )
 
         # Inizializzazione Xavier per le convoluzioni 1x1
         for layer in mlp:

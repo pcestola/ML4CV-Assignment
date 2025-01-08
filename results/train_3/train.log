@@ -1,0 +1,59 @@
+2025-01-08 21:02:03,681 - device          : cuda:4
+2025-01-08 21:02:03,681 - model           : resnet101
+2025-01-08 21:02:03,681 - mlp             : 2
+2025-01-08 21:02:03,681 - vae             : False
+2025-01-08 21:02:03,681 - epochs          : 50
+2025-01-08 21:02:03,681 - batch           : 16
+2025-01-08 21:02:03,681 - lr              : 0.0001
+2025-01-08 21:02:03,681 - crop            : 512
+2025-01-08 21:02:03,681 - optimizer       : adam
+2025-01-08 21:02:03,681 - biases          : False
+2025-01-08 21:02:03,682 - focal_loss      : 0
+2025-01-08 21:02:03,682 - activation      : softmax
+2025-01-08 21:02:03,682 - class_weights   : False
+2025-01-08 21:02:03,682 - norm_weights    : False
+2025-01-08 21:02:03,682 - p               : 0.2
+2025-01-08 21:02:03,690 - Dataset Creati
+2025-01-08 21:02:03,691 - Training images: 5125
+2025-01-08 21:02:03,691 - Validation images: 1031
+
+2025-01-08 21:02:03,691 - Dataloader Creati
+2025-01-08 21:02:03,691 - Training batches: 320
+2025-01-08 21:02:03,691 - Validation batches: 128
+
+2025-01-08 21:02:07,739 - Model: deeplabv3plus_resnet101
+
+2025-01-08 21:02:07,807 - Modello caricato correttamente su cuda:4
+
+2025-01-08 21:02:07,810 - Inizio del training
+2025-01-08 21:02:07,811 - optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: False
+    lr: 0.0001
+    maximize: False
+    weight_decay: 0.0001
+
+Parameter Group 1
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: False
+    lr: 1e-05
+    maximize: False
+    weight_decay: 0.0001
+)
+2025-01-08 21:02:07,811 - loss:      CrossEntropyLoss()
+2025-01-08 21:02:07,811 - epochs:    15
+2025-01-08 21:02:07,811 - name:      weights_0
+
+2025-01-08 21:08:41,250 - Epoch    Loss       Val Loss   mIoU       minIoU     maxIoU     LR      
+2025-01-08 21:08:41,251 - 0        1.081828   0.640948   0.250288   0.000000   0.813671   1.0e-04 , 1.0e-05 
