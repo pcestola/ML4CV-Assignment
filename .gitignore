@@ -12,6 +12,6 @@
 deeplab/
 images/
 weights/
-StandardizedMaxLogits/
+.StandardizedMaxLogits/
 results_1/
 results_2/

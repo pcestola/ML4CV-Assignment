@@ -101,112 +101,72 @@ def evaluate_means(model: nn.Module, dataloader: DataLoader, num_classes: int):
 
     device = next(model.parameters()).device
 
-    # TODO: hard coded, il 256 va calcolato
-    means = [torch.zeros(256,device='cpu') for _ in range(num_classes)]
+    means = [0 for _ in range(num_classes)]
     count = [0 for _ in range(num_classes)]
 
     model.eval()
 
     with torch.no_grad():
-        L = len(dataloader)
-        for images, masks in dataloader:
-            images, masks = images.to(device), masks.to(device)
+        for images, _ in dataloader:
+            images = images.to(device)
 
-            features = model(images).permute((1, 0, 2, 3))  #(c,b,h,w)
-            
+            logits = model(images)
             del images
 
+            max_logits, max_indices = torch.max(logits, dim=1)
+            del logits
+
             for c in range(num_classes):
-                mask_indices = (masks == c)
-                
-                if mask_indices.any():
-                    means[c] += features[:, mask_indices].sum(dim=1).cpu()
-                    count[c] += mask_indices.sum().item()
+                means[c] += max_logits[max_indices==c].sum().item()
+                count[c] += (max_indices==c).sum().item()
+            
+    for i in range(num_classes):
+        if count[i] > 0:
+            means[i] = means[i]/count[i]
+        else:
+            means[i] = 0
 
-    # Calcola la media finale
-    final_means = [
-        mean / c if c > 0 else torch.zeros_like(mean)
-        for c, mean in zip(count, means)
-    ]
-
-    return final_means
+    return means
 
 def evaluate_covariance(model: nn.Module, dataloader: DataLoader, means:list, num_classes: int):
 
     device = next(model.parameters()).device
 
-    # TODO: hard coded, il 256 va calcolato
-    for i in range(num_classes):
-        means[i] = means[i].unsqueeze(dim=1).to(device)
-    variance = torch.zeros((256,256),device='cpu')
-    count = 0
+    variances = [0 for _ in range(num_classes)]
+    count = [0 for _ in range(num_classes)]
 
     model.eval()
 
     with torch.no_grad():
-        L = len(dataloader)
-        for images, masks in dataloader:
-            images, masks = images.to(device), masks.to(device)
+        for images, _ in dataloader:
+            images = images.to(device)
 
-            features = model(images).permute((1, 0, 2, 3))  # (c, b, h, w)
-
+            logits = model(images)
             del images
 
+            max_logits, max_indices = torch.max(logits, dim=1)
+            del logits
+
             for c in range(num_classes):
-                mask_indices = (masks == c)
-
-                if mask_indices.any():
-                    centered_features = features[:, mask_indices] - means[c]
-                    
-                    del mask_indices
-                    
-                    variance += (centered_features @ centered_features.T).cpu()
-
-                    # Aggiorna il conteggio
-                    count += centered_features.shape[1]
-
-            #print(f'{(i + 1) * 100 / L:.2f}%', end='\r')
-
-    # Normalizza la covarianza finale
-    variance /= count if count > 0 else 1
+                variances[c] += ((max_logits[max_indices==c]-means[c])**2).sum().item()
+                count[c] += (max_indices==c).sum().item()
 
     for i in range(num_classes):
-        means[i] = means[i].squeeze().to('cpu')
+        if count[i] > 0:
+            variances[i] = variances[i]/count[i]
+        else:
+            variances[i] = 0
 
-    return variance
+    return variances
 
-def mahalanobis_score(features: torch.Tensor, block_size: int = 1000):
-    global mean, cov
-    _, c, _, _ = features.shape
+def s_max_logit_score(logits: torch.Tensor):
+    global means, variances
     
-    # Flatten features to (b * h * w, c)
-    features_flat = features.permute(0, 2, 3, 1).reshape(-1, c)
-    
-    # Result container
-    num_features = features_flat.shape[0]
-    scores = torch.empty(num_features, device=features.device)
-    
-    # Process in blocks
-    for start in range(0, num_features, block_size):
-        end = min(start + block_size, num_features)
-        
-        # Slice the current block
-        block = features_flat[start:end]  # (block_size, c)
-        
-        # Compute the centered features (block_size, n, c)
-        block_centered = block.unsqueeze(1) - mean.unsqueeze(0)  # Broadcasting
-        
-        # Compute cov multiplication (block_size, n, c)
-        block_cov = torch.einsum('ij,bnc->bni', cov, block_centered)
-        
-        # Compute Mahalanobis score (block_size, n)
-        block_result = torch.einsum('bnc,bnc->bn', block_centered, block_cov)
-        
-        # Take the maximum score for this block
-        scores[start:end] = torch.max(-block_result, dim=1)[0]
+    scores, indices = torch.max(logits,dim=1)
+
+    scores = (scores - means[indices]) / variances[indices]
 
     return scores
-
 
 def calculate_aupr(dataloader, model, score_function, device):
     # Sposta il modello su eval mode
@@ -356,10 +316,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Creo il logger
-    results_dir = f'/home/piecestola/space/ML4CV/results_{args.folder}'
+    results_dir = f'/raid/homespace/piecestola/space/ML4CV/results_{args.folder}'
     test_dir = os.path.join(results_dir, args.file)
     ckpt_dir = os.path.join(test_dir, 'ckpts')
-    logger = setup_logger(test_dir, 'mahalanobis.log')
+    logger = setup_logger(test_dir, 'smaxlogits.log')
 
     if not args.test:
         
@@ -413,7 +373,8 @@ if __name__ == '__main__':
         #model = network.modeling.__dict__['deeplabv3plus_mobilenet'](num_classes=19, output_stride=16)
         model = network.modeling.__dict__['deeplabv3plus_resnet101'](num_classes=21, output_stride=16)
 
-        model.classifier.classifier[3] = nn.Identity()
+        # TODO: Aggiungi i casi mancanti
+        model.classifier.classifier[3] = nn.Conv2d(256, 13, kernel_size=(1, 1), stride=(1, 1))
         
         state_dict = torch.load(weight_path,map_location=args.device)
         if 'model_state_dict' in state_dict:
@@ -432,7 +393,7 @@ if __name__ == '__main__':
         means = evaluate_means(model, dataloader_train, 13)
         covariance = evaluate_covariance(model, dataloader_train, means, 13)
         
-        torch.save({'means': means, 'covariance': covariance}, os.path.join(test_dir,'mahalanobis.pth'))
+        torch.save({'means': means, 'covariance': covariance}, os.path.join(test_dir,'smaxlogits.pth'))
     else:
         path_test = './data/test'
         path_test_images            =  path_test + '/images/test/t5'
@@ -489,7 +450,8 @@ if __name__ == '__main__':
         #model = network.modeling.__dict__['deeplabv3plus_mobilenet'](num_classes=19, output_stride=16)
         model = network.modeling.__dict__['deeplabv3plus_resnet101'](num_classes=21, output_stride=16)
 
-        model.classifier.classifier[3] = nn.Identity()
+        # TODO: Aggiungi i casi mancanti
+        model.classifier.classifier[3] = nn.Conv2d(256, 13, kernel_size=(1, 1), stride=(1, 1))
         
         state_dict = torch.load(weight_path,map_location=args.device)
         if 'model_state_dict' in state_dict:
@@ -505,14 +467,14 @@ if __name__ == '__main__':
         '''
             CALCOLO DELLA DISTANZA
         '''
-        data = torch.load(os.path.join(test_dir,'mahalanobis.pth'),map_location=args.device)
-        mean = torch.stack(data['means'])
-        cov = torch.linalg.inv(data['covariance'])
+        data = torch.load(os.path.join(test_dir,'smaxlogits.pth'),map_location=args.device)
+        means = torch.tensor(data['means'],device=args.device)
+        variances = torch.tensor(data['covariance'],device=args.device)
         
-        aupr = calculate_aupr(dataloader_test,model,mahalanobis_score,args.device)
+        aupr = calculate_aupr(dataloader_test,model,s_max_logit_score,args.device)
         logger.info(f'AUPR t5: {aupr}')
 
-        aupr = calculate_aupr(dataloader_test_anomaly,model,mahalanobis_score,args.device)
+        aupr = calculate_aupr(dataloader_test_anomaly,model,s_max_logit_score,args.device)
         logger.info(f'AUPR t6: {aupr}')
 
     '''
@@ -527,5 +489,4 @@ if __name__ == '__main__':
 - aggiorna il file excel con le metriche
 - inizia a scrivere qualcosa da presentare
 - inventa qualcosa
-!!! Il codice della covarianza è errato!!! (sommi sulle classi e non su 256)
 '''

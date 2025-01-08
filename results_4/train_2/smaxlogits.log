@@ -1,0 +1,13 @@
+2025-01-07 14:34:12,888 - device          : cuda:3
+2025-01-07 14:34:12,889 - folder          : 4
+2025-01-07 14:34:12,889 - file            : train_2
+2025-01-07 14:34:12,889 - test            : False
+2025-01-07 14:34:12,889 - end
+
+2025-01-07 14:34:12,896 - Dataset Creato
+2025-01-07 14:34:12,896 - Training images: 5125
+2025-01-07 14:34:12,897 - Dataloader Creato
+2025-01-07 14:34:12,897 - Training batches: 1281
+2025-01-07 14:34:17,400 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_4/train_2/ckpts/weights_mIoU_1.pt
+2025-01-07 14:34:17,401 - Modello caricato correttamente su cuda:3
+
