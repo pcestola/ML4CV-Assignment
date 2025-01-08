@@ -11,3 +11,16 @@
 2025-01-07 14:34:11,207 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_4/train_1/ckpts/weights_mIoU_1.pt
 2025-01-07 14:34:11,209 - Modello caricato correttamente su cuda:1
 
+2025-01-08 18:11:41,583 - Dataset Creati
+2025-01-08 18:11:41,584 - Test images: 1024
+2025-01-08 18:11:41,584 - Anomalies images: 476
+
+2025-01-08 18:11:41,584 - Dataloader Creati
+2025-01-08 18:11:41,584 - Test batches: 256
+2025-01-08 18:11:41,585 - Anomalies batches: 119
+
+2025-01-08 18:11:45,625 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_4/train_1/ckpts/weights_mIoU_1.pt
+2025-01-08 18:11:45,625 - Modello caricato correttamente su cuda:1
+
+2025-01-08 18:16:00,135 - AUPR t5: 0.005986698437482119
+2025-01-08 18:17:53,030 - AUPR t6: 0.005856248550117016
