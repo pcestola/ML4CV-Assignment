@@ -1,0 +1,15 @@
+2025-01-09 19:25:57,587 - device          : cuda:0
+2025-01-09 19:25:57,588 - folder          : 5
+2025-01-09 19:25:57,588 - file            : train_6
+2025-01-09 19:25:57,588 - mlp             : 1
+2025-01-09 19:25:57,588 - p               : 0.5
+2025-01-09 19:25:57,588 - test            : False
+2025-01-09 19:25:57,588 - end
+
+2025-01-09 19:25:57,596 - Dataset Creato
+2025-01-09 19:25:57,596 - Training images: 5125
+2025-01-09 19:25:57,597 - Dataloader Creato
+2025-01-09 19:25:57,597 - Training batches: 1281
+2025-01-09 19:26:02,349 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_6/ckpts/weights_mIoU_1.pt
+2025-01-09 19:26:02,350 - Modello caricato correttamente su cuda:0
+

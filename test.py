@@ -350,18 +350,19 @@ if __name__ == '__main__':
     
     # Aggiungi argomenti
     parser.add_argument('--device', type=str, default = find_best_device())
-    parser.add_argument('--name', type=str)
     parser.add_argument('--folder', type=int)
+    parser.add_argument('--file', type=str)
     parser.add_argument('--norm_weights', action='store_true')
-    parser.add_argument('--mlp', action='store_true')
+    parser.add_argument('--mlp', type=int, default=0)
+    parser.add_argument('--p', type=float, default=0.3)
     parser.add_argument('--vae', action='store_true')
 
     # Parsing degli argomenti
     args = parser.parse_args()
 
     # Creo il logger
-    results_dir = f'/home/piecestola/space/ML4CV/results_{args.folder}'
-    test_dir = os.path.join(results_dir, args.name)
+    results_dir = f'/raid/homespace/piecestola/space/ML4CV/results_{args.folder}'
+    test_dir = os.path.join(results_dir, args.file)
     ckpt_dir = os.path.join(test_dir, 'ckpts')
     logger = setup_logger(test_dir, 'test.log')
 
@@ -434,17 +435,28 @@ if __name__ == '__main__':
 
     if args.norm_weights:
         head = NormedConv(256,13,(1,1),(1,1))
-    elif args.mlp:
+    elif args.mlp == 1:
         head = nn.Sequential(
             nn.Conv2d(256, 128, kernel_size=1, stride=1),
             nn.ReLU(inplace=True),
+            nn.Dropout(p=args.p),
             nn.Conv2d(128, 13, kernel_size=1, stride=1)
+        )
+    elif args.mlp == 2:
+        head = nn.Sequential(
+            nn.Conv2d(256, 128, kernel_size=1, stride=1),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=args.p),
+            nn.Conv2d(128, 64, kernel_size=1, stride=1),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=args.p),
+            nn.Conv2d(64, 13, kernel_size=1, stride=1)
         )
     else:
         head = nn.Conv2d(256, 13, kernel_size=(1, 1), stride=(1, 1), bias=True)
 
     model.classifier.classifier[3] = head
-    
+
     state_dict = torch.load(weight_path,map_location=args.device)
     if 'model_state_dict' in state_dict:
         model.load_state_dict(state_dict['model_state_dict'])

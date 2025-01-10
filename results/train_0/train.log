@@ -1,32 +1,32 @@
-2025-01-08 21:01:48,471 - device          : cuda:0
-2025-01-08 21:01:48,471 - model           : resnet101
-2025-01-08 21:01:48,471 - mlp             : 0
-2025-01-08 21:01:48,471 - vae             : False
-2025-01-08 21:01:48,471 - epochs          : 50
-2025-01-08 21:01:48,472 - batch           : 16
-2025-01-08 21:01:48,472 - lr              : 0.001
-2025-01-08 21:01:48,472 - crop            : 512
-2025-01-08 21:01:48,472 - optimizer       : adam
-2025-01-08 21:01:48,472 - biases          : False
-2025-01-08 21:01:48,472 - focal_loss      : 0
-2025-01-08 21:01:48,472 - activation      : softmax
-2025-01-08 21:01:48,472 - class_weights   : False
-2025-01-08 21:01:48,472 - norm_weights    : False
-2025-01-08 21:01:48,472 - p               : 0.3
-2025-01-08 21:01:48,480 - Dataset Creati
-2025-01-08 21:01:48,480 - Training images: 5125
-2025-01-08 21:01:48,480 - Validation images: 1031
+2025-01-09 22:52:44,936 - device          : cuda:0
+2025-01-09 22:52:44,936 - model           : resnet101
+2025-01-09 22:52:44,936 - mlp             : 0
+2025-01-09 22:52:44,936 - vae             : False
+2025-01-09 22:52:44,936 - epochs          : 50
+2025-01-09 22:52:44,936 - batch           : 32
+2025-01-09 22:52:44,937 - lr              : 0.0001
+2025-01-09 22:52:44,937 - crop            : 512
+2025-01-09 22:52:44,937 - optimizer       : adam
+2025-01-09 22:52:44,937 - biases          : False
+2025-01-09 22:52:44,937 - focal_loss      : 0
+2025-01-09 22:52:44,937 - activation      : softmax
+2025-01-09 22:52:44,937 - class_weights   : False
+2025-01-09 22:52:44,937 - norm_weights    : False
+2025-01-09 22:52:44,937 - p               : 0.3
+2025-01-09 22:52:44,945 - Dataset Creati
+2025-01-09 22:52:44,945 - Training images: 5125
+2025-01-09 22:52:44,945 - Validation images: 1031
 
-2025-01-08 21:01:48,480 - Dataloader Creati
-2025-01-08 21:01:48,480 - Training batches: 320
-2025-01-08 21:01:48,480 - Validation batches: 128
+2025-01-09 22:52:44,946 - Dataloader Creati
+2025-01-09 22:52:44,946 - Training batches: 160
+2025-01-09 22:52:44,946 - Validation batches: 128
 
-2025-01-08 21:01:52,041 - Model: deeplabv3plus_resnet101
+2025-01-09 22:52:48,524 - Model: deeplabv3plus_resnet101
 
-2025-01-08 21:01:52,104 - Modello caricato correttamente su cuda:0
+2025-01-09 22:52:48,588 - Modello caricato correttamente su cuda:0
 
-2025-01-08 21:01:52,106 - Inizio del training
-2025-01-08 21:01:52,106 - optimizer: Adam (
+2025-01-09 22:52:48,591 - Inizio del training
+2025-01-09 22:52:48,591 - optimizer: Adam (
 Parameter Group 0
     amsgrad: False
     betas: (0.9, 0.999)
@@ -35,7 +35,7 @@ Parameter Group 0
     eps: 1e-08
     foreach: None
     fused: False
-    lr: 0.001
+    lr: 0.0001
     maximize: False
     weight_decay: 0.0001
 
@@ -47,13 +47,11 @@ Parameter Group 1
     eps: 1e-08
     foreach: None
     fused: False
-    lr: 0.0001
+    lr: 1e-05
     maximize: False
     weight_decay: 0.0001
 )
-2025-01-08 21:01:52,107 - loss:      CrossEntropyLoss()
-2025-01-08 21:01:52,107 - epochs:    15
-2025-01-08 21:01:52,107 - name:      weights_0
+2025-01-09 22:52:48,591 - loss:      CrossEntropyLoss()
+2025-01-09 22:52:48,591 - epochs:    15
+2025-01-09 22:52:48,592 - name:      weights_0
 
-2025-01-08 21:08:15,500 - Epoch    Loss       Val Loss   mIoU       minIoU     maxIoU     LR      
-2025-01-08 21:08:15,500 - 0        0.729510   0.692386   0.331523   0.000000   0.816390   1.0e-03 , 1.0e-04 

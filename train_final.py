@@ -65,6 +65,59 @@ class RandomCropSync:
         mask = FUNC.crop(mask, i, j, h, w)
         return img, mask
 
+class TopScoringCrop:
+    def __init__(self, size, freqs):
+        self.size = size
+        self.freqs = torch.tensor(freqs)
+
+    def calculate_iou(self, box1, box2):
+        side = self.size
+        x1_min, y1_min = box1
+        x1_max, y1_max = box1[0] + side, box1[1] + side
+
+        x2_min, y2_min = box2
+        x2_max, y2_max = box2[0] + side, box2[1] + side
+
+        inter_x_min = max(x1_min, x2_min)
+        inter_y_min = max(y1_min, y2_min)
+        inter_x_max = min(x1_max, x2_max)
+        inter_y_max = min(y1_max, y2_max)
+
+        inter_area = max(0, inter_x_max - inter_x_min) * max(0, inter_y_max - inter_y_min)
+        box_area = side * side
+        union_area = 2 * box_area - inter_area
+
+        return inter_area / union_area if union_area > 0 else 0
+
+    def filter_squares(self, vertices, threshold=0.5):
+        filtered = [vertices[0]]
+        for idx in range(1, len(vertices)):
+            iou = max(self.calculate_iou(x, vertices[idx]) for x in filtered)
+            if iou <= threshold:
+                filtered.append(vertices[idx])
+        return filtered
+
+    def __call__(self, img, mask):
+        scores = self.freqs[mask.type(torch.int64)-1].squeeze()
+
+        values = []
+        indices = []
+        for x in range(0, mask.shape[1] - self.size, 40):
+            for y in range(0, mask.shape[2] - self.size, 40):
+                value = scores[x:x + self.size, y:y + self.size].sum().item()
+                values.append(value)
+                indices.append((x, y))
+
+        sorted_indices = [obj for _, obj in sorted(zip(values, indices), reverse=True)]
+        sorted_indices = self.filter_squares(sorted_indices, threshold=0.3)
+
+        # Select the top scoring crop
+        top_index = sorted_indices[random.randint(0,min(3,len(sorted_indices)))]
+        img_crop = FUNC.crop(img, top_index[0], top_index[1], self.size, self.size)
+        mask_crop = FUNC.crop(mask, top_index[0], top_index[1], self.size, self.size)
+
+        return img_crop, mask_crop
+
 class RandomCropResizeSync:
     def __init__(self, size, min_crop_size=(128, 128), aspect_ratio_range=(0.5, 2.0)):
         """
@@ -123,6 +176,16 @@ class RandomHorizontalFlipSync:
         if random.random() < self.p:
             img = FUNC.hflip(img)
             mask = FUNC.hflip(mask)
+        return img, mask
+    
+class RandomVerticalFlipSync:
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, img, mask):
+        if random.random() < self.p:
+            img = FUNC.vflip(img)
+            mask = FUNC.vflip(mask)
         return img, mask
     
 class ToTensorSync:
@@ -698,7 +761,7 @@ if __name__ == '__main__':
     
     # Aggiungi argomenti
     parser.add_argument('--device', type=str, default = find_best_device())
-    parser.add_argument('--model', type=str, default = 'mobilenet')
+    parser.add_argument('--model', type=str, default = 'resnet101')
     parser.add_argument('--mlp', type=int, default=0)
     parser.add_argument('--vae', action='store_true')
     # Parametri addestramento
@@ -747,12 +810,16 @@ if __name__ == '__main__':
     )
     '''
 
+    scores_ = [3.223254919052124, 8.324562072753906, 1000.07819366455078, 214.23089599609375, 500441.0986328125, 80.23406219482422, 74.35269927978516, 3.00116229057312, 14.900472640991211, 11.333002090454102, 404.04559326171875, 29.11901092529297, 995.0892333984375]
+    
     if args.crop:
         train_transforms = ComposeSync([
             RandomCropSync((args.crop,args.crop)),
             RandomHorizontalFlipSync(p=0.5),
+            RandomVerticalFlipSync(p=0.5),
             ToTensorSync(),
             NormalizeSync(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            #TopScoringCrop(100,scores_)
         ])
     else:
         train_transforms = ComposeSync([
@@ -970,11 +1037,13 @@ if __name__ == '__main__':
         logger)
 
     # Salvo i parametri
+    '''
     all_parameters = dict()
     for name, value in args.__dict__.items():
         if not name in ['device','lr','epochs']:
             all_parameters[name] = value
     torch.save(all_parameters, train_dir+'/params.pt')
+    '''
 
     # Salvo le loss
     with open(os.path.join(train_dir,'losses.pkl'), "wb") as f:

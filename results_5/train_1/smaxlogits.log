@@ -1,0 +1,293 @@
+2025-01-09 19:07:00,151 - device          : cuda:0
+2025-01-09 19:07:00,151 - folder          : 5
+2025-01-09 19:07:00,151 - file            : train_1
+2025-01-09 19:07:00,151 - mlp, type=int   : 1
+2025-01-09 19:07:00,152 - test            : False
+2025-01-09 19:07:00,152 - end
+
+2025-01-09 19:07:00,160 - Dataset Creato
+2025-01-09 19:07:00,160 - Training images: 5125
+2025-01-09 19:07:00,161 - Dataloader Creato
+2025-01-09 19:07:00,161 - Training batches: 1281
+2025-01-09 19:07:39,732 - device          : cuda:0
+2025-01-09 19:07:39,733 - folder          : 5
+2025-01-09 19:07:39,733 - file            : train_1
+2025-01-09 19:07:39,733 - mlp             : 1
+2025-01-09 19:07:39,733 - p               : 0.2
+2025-01-09 19:07:39,733 - test            : False
+2025-01-09 19:07:39,733 - end
+
+2025-01-09 19:07:39,741 - Dataset Creato
+2025-01-09 19:07:39,741 - Training images: 5125
+2025-01-09 19:07:39,742 - Dataloader Creato
+2025-01-09 19:07:39,742 - Training batches: 1281
+2025-01-09 19:08:12,748 - device          : cuda:0
+2025-01-09 19:08:12,749 - folder          : 5
+2025-01-09 19:08:12,749 - file            : train_1
+2025-01-09 19:08:12,749 - mlp             : 1
+2025-01-09 19:08:12,749 - p               : 0.2
+2025-01-09 19:08:12,749 - test            : False
+2025-01-09 19:08:12,749 - end
+
+2025-01-09 19:08:12,757 - Dataset Creato
+2025-01-09 19:08:12,757 - Training images: 5125
+2025-01-09 19:08:12,758 - Dataloader Creato
+2025-01-09 19:08:12,758 - Training batches: 1281
+2025-01-09 19:08:17,534 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:08:17,535 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:08:38,620 - device          : cuda:0
+2025-01-09 19:08:38,620 - folder          : 5
+2025-01-09 19:08:38,620 - file            : train_1
+2025-01-09 19:08:38,620 - mlp             : 1
+2025-01-09 19:08:38,620 - p               : 0.2
+2025-01-09 19:08:38,620 - test            : False
+2025-01-09 19:08:38,620 - end
+
+2025-01-09 19:08:38,628 - Dataset Creato
+2025-01-09 19:08:38,628 - Training images: 5125
+2025-01-09 19:08:38,629 - Dataloader Creato
+2025-01-09 19:08:38,629 - Training batches: 1281
+2025-01-09 19:08:43,396 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:08:43,396 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:11:39,909 - device          : cuda:0
+2025-01-09 19:11:39,910 - folder          : 5
+2025-01-09 19:11:39,910 - file            : train_1
+2025-01-09 19:11:39,910 - mlp             : 1
+2025-01-09 19:11:39,910 - p               : 0.2
+2025-01-09 19:11:39,910 - test            : False
+2025-01-09 19:11:39,910 - end
+
+2025-01-09 19:11:39,918 - Dataset Creato
+2025-01-09 19:11:39,918 - Training images: 5125
+2025-01-09 19:11:39,919 - Dataloader Creato
+2025-01-09 19:11:39,919 - Training batches: 1281
+2025-01-09 19:11:44,657 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:11:44,658 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:12:37,976 - device          : cuda:0
+2025-01-09 19:12:37,976 - folder          : 5
+2025-01-09 19:12:37,976 - file            : train_1
+2025-01-09 19:12:37,976 - mlp             : 1
+2025-01-09 19:12:37,976 - p               : 0.2
+2025-01-09 19:12:37,976 - test            : False
+2025-01-09 19:12:37,977 - end
+
+2025-01-09 19:12:37,985 - Dataset Creato
+2025-01-09 19:12:37,985 - Training images: 5125
+2025-01-09 19:12:37,986 - Dataloader Creato
+2025-01-09 19:12:37,986 - Training batches: 1281
+2025-01-09 19:12:42,717 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:12:42,717 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:13:37,844 - device          : cuda:0
+2025-01-09 19:13:37,844 - folder          : 5
+2025-01-09 19:13:37,844 - file            : train_1
+2025-01-09 19:13:37,844 - mlp             : 1
+2025-01-09 19:13:37,845 - p               : 0.2
+2025-01-09 19:13:37,845 - test            : False
+2025-01-09 19:13:37,845 - end
+
+2025-01-09 19:13:37,853 - Dataset Creato
+2025-01-09 19:13:37,853 - Training images: 5125
+2025-01-09 19:13:37,854 - Dataloader Creato
+2025-01-09 19:13:37,854 - Training batches: 1281
+2025-01-09 19:13:42,519 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:13:42,519 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:15:04,192 - device          : cuda:0
+2025-01-09 19:15:04,192 - folder          : 5
+2025-01-09 19:15:04,192 - file            : train_1
+2025-01-09 19:15:04,192 - mlp             : 1
+2025-01-09 19:15:04,192 - p               : 0.2
+2025-01-09 19:15:04,192 - test            : False
+2025-01-09 19:15:04,192 - end
+
+2025-01-09 19:15:04,201 - Dataset Creato
+2025-01-09 19:15:04,201 - Training images: 5125
+2025-01-09 19:15:04,202 - Dataloader Creato
+2025-01-09 19:15:04,202 - Training batches: 1281
+2025-01-09 19:15:08,836 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:15:08,836 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:16:45,082 - device          : cuda:0
+2025-01-09 19:16:45,082 - folder          : 5
+2025-01-09 19:16:45,082 - file            : train_1
+2025-01-09 19:16:45,083 - mlp             : 1
+2025-01-09 19:16:45,083 - p               : 0.2
+2025-01-09 19:16:45,083 - test            : False
+2025-01-09 19:16:45,083 - end
+
+2025-01-09 19:16:45,091 - Dataset Creato
+2025-01-09 19:16:45,091 - Training images: 5125
+2025-01-09 19:16:45,092 - Dataloader Creato
+2025-01-09 19:16:45,092 - Training batches: 1281
+2025-01-09 19:16:49,804 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:16:49,804 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:18:31,190 - device          : cuda:0
+2025-01-09 19:18:31,190 - folder          : 5
+2025-01-09 19:18:31,190 - file            : train_1
+2025-01-09 19:18:31,190 - mlp             : 1
+2025-01-09 19:18:31,191 - p               : 0.2
+2025-01-09 19:18:31,191 - test            : False
+2025-01-09 19:18:31,191 - end
+
+2025-01-09 19:18:31,199 - Dataset Creato
+2025-01-09 19:18:31,199 - Training images: 5125
+2025-01-09 19:18:31,200 - Dataloader Creato
+2025-01-09 19:18:31,200 - Training batches: 1281
+2025-01-09 19:18:35,937 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:18:35,937 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:19:05,303 - device          : cuda:0
+2025-01-09 19:19:05,304 - folder          : 5
+2025-01-09 19:19:05,304 - file            : train_1
+2025-01-09 19:19:05,304 - mlp             : 1
+2025-01-09 19:19:05,304 - p               : 0.2
+2025-01-09 19:19:05,304 - test            : False
+2025-01-09 19:19:05,304 - end
+
+2025-01-09 19:19:05,312 - Dataset Creato
+2025-01-09 19:19:05,312 - Training images: 5125
+2025-01-09 19:19:05,313 - Dataloader Creato
+2025-01-09 19:19:05,314 - Training batches: 1281
+2025-01-09 19:19:10,027 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:19:10,028 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:19:29,052 - device          : cuda:0
+2025-01-09 19:19:29,053 - folder          : 5
+2025-01-09 19:19:29,053 - file            : train_1
+2025-01-09 19:19:29,053 - mlp             : 1
+2025-01-09 19:19:29,053 - p               : 0.2
+2025-01-09 19:19:29,053 - test            : False
+2025-01-09 19:19:29,053 - end
+
+2025-01-09 19:19:29,063 - Dataset Creato
+2025-01-09 19:19:29,063 - Training images: 5125
+2025-01-09 19:19:29,064 - Dataloader Creato
+2025-01-09 19:19:29,064 - Training batches: 1281
+2025-01-09 19:19:33,777 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:19:33,777 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:19:58,427 - device          : cuda:0
+2025-01-09 19:19:58,428 - folder          : 5
+2025-01-09 19:19:58,428 - file            : train_1
+2025-01-09 19:19:58,428 - mlp             : 1
+2025-01-09 19:19:58,428 - p               : 0.2
+2025-01-09 19:19:58,428 - test            : False
+2025-01-09 19:19:58,428 - end
+
+2025-01-09 19:19:58,436 - Dataset Creato
+2025-01-09 19:19:58,436 - Training images: 5125
+2025-01-09 19:19:58,437 - Dataloader Creato
+2025-01-09 19:19:58,437 - Training batches: 1281
+2025-01-09 19:20:03,176 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:20:03,177 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:20:53,699 - device          : cuda:0
+2025-01-09 19:20:53,700 - folder          : 5
+2025-01-09 19:20:53,700 - file            : train_1
+2025-01-09 19:20:53,700 - mlp             : 1
+2025-01-09 19:20:53,700 - p               : 0.2
+2025-01-09 19:20:53,700 - test            : False
+2025-01-09 19:20:53,700 - end
+
+2025-01-09 19:20:53,708 - Dataset Creato
+2025-01-09 19:20:53,708 - Training images: 5125
+2025-01-09 19:20:53,709 - Dataloader Creato
+2025-01-09 19:20:53,709 - Training batches: 1281
+2025-01-09 19:20:58,433 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:20:58,434 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:21:36,261 - device          : cuda:0
+2025-01-09 19:21:36,261 - folder          : 5
+2025-01-09 19:21:36,261 - file            : train_1
+2025-01-09 19:21:36,261 - mlp             : 1
+2025-01-09 19:21:36,261 - p               : 0.2
+2025-01-09 19:21:36,261 - test            : False
+2025-01-09 19:21:36,262 - end
+
+2025-01-09 19:21:36,269 - Dataset Creato
+2025-01-09 19:21:36,269 - Training images: 5125
+2025-01-09 19:21:36,271 - Dataloader Creato
+2025-01-09 19:21:36,271 - Training batches: 1281
+2025-01-09 19:21:41,017 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:21:41,018 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:21:50,632 - device          : cuda:0
+2025-01-09 19:21:50,632 - folder          : 5
+2025-01-09 19:21:50,632 - file            : train_1
+2025-01-09 19:21:50,632 - mlp             : 1
+2025-01-09 19:21:50,632 - p               : 0.2
+2025-01-09 19:21:50,633 - test            : False
+2025-01-09 19:21:50,633 - end
+
+2025-01-09 19:21:50,640 - Dataset Creato
+2025-01-09 19:21:50,640 - Training images: 5125
+2025-01-09 19:21:50,642 - Dataloader Creato
+2025-01-09 19:21:50,642 - Training batches: 1281
+2025-01-09 19:21:55,344 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:21:55,344 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:23:34,548 - device          : cuda:0
+2025-01-09 19:23:34,548 - folder          : 5
+2025-01-09 19:23:34,548 - file            : train_1
+2025-01-09 19:23:34,548 - mlp             : 1
+2025-01-09 19:23:34,548 - p               : 0.2
+2025-01-09 19:23:34,548 - test            : False
+2025-01-09 19:23:34,549 - end
+
+2025-01-09 19:23:34,557 - Dataset Creato
+2025-01-09 19:23:34,557 - Training images: 5125
+2025-01-09 19:23:34,558 - Dataloader Creato
+2025-01-09 19:23:34,558 - Training batches: 1281
+2025-01-09 19:23:39,240 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:23:39,241 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:25:01,617 - device          : cuda:0
+2025-01-09 19:25:01,617 - folder          : 5
+2025-01-09 19:25:01,617 - file            : train_1
+2025-01-09 19:25:01,617 - mlp             : 1
+2025-01-09 19:25:01,617 - p               : 0.2
+2025-01-09 19:25:01,617 - test            : False
+2025-01-09 19:25:01,617 - end
+
+2025-01-09 19:25:01,625 - Dataset Creato
+2025-01-09 19:25:01,626 - Training images: 5125
+2025-01-09 19:25:01,627 - Dataloader Creato
+2025-01-09 19:25:01,627 - Training batches: 1281
+2025-01-09 19:25:06,363 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:25:06,364 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:26:41,685 - device          : cuda:0
+2025-01-09 19:26:41,685 - folder          : 5
+2025-01-09 19:26:41,685 - file            : train_1
+2025-01-09 19:26:41,685 - mlp             : 1
+2025-01-09 19:26:41,685 - p               : 0.5
+2025-01-09 19:26:41,685 - test            : False
+2025-01-09 19:26:41,685 - end
+
+2025-01-09 19:26:41,693 - Dataset Creato
+2025-01-09 19:26:41,694 - Training images: 5125
+2025-01-09 19:26:41,695 - Dataloader Creato
+2025-01-09 19:26:41,695 - Training batches: 1281
+2025-01-09 19:26:46,368 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:26:46,368 - Modello caricato correttamente su cuda:0
+
+2025-01-09 19:29:45,189 - device          : cuda:0
+2025-01-09 19:29:45,189 - folder          : 5
+2025-01-09 19:29:45,189 - file            : train_1
+2025-01-09 19:29:45,189 - mlp             : 1
+2025-01-09 19:29:45,190 - p               : 0.5
+2025-01-09 19:29:45,190 - test            : False
+2025-01-09 19:29:45,190 - end
+
+2025-01-09 19:29:45,198 - Dataset Creato
+2025-01-09 19:29:45,198 - Training images: 5125
+2025-01-09 19:29:45,199 - Dataloader Creato
+2025-01-09 19:29:45,199 - Training batches: 1281
+2025-01-09 19:29:49,914 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_5/train_1/ckpts/weights_mIoU_1.pt
+2025-01-09 19:29:49,915 - Modello caricato correttamente su cuda:0
+
