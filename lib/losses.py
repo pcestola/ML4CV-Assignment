@@ -2,111 +2,97 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class BCELossModified(nn.BCEWithLogitsLoss):
-    def __init__(self, weight=None, size_average=None, reduce=None, reduction='mean', pos_weight=None):
-        """
-        Modifica della BCEWithLogitsLoss per supportare pos_weight di dimensioni arbitrarie.
-
-        :param weight: Peso per ogni classe.
-        :param size_average: Non utilizzato, per compatibilità.
-        :param reduce: Non utilizzato, per compatibilità.
-        :param reduction: Modalità di riduzione ('mean', 'sum', ecc.).
-        :param pos_weight: Peso positivo per le classi sbilanciate.
-        """
-        if pos_weight is not None:
-            for _ in range(3 - pos_weight.dim()):
+class BCEWithLogitsLossModified(nn.BCEWithLogitsLoss):
+    def __init__(self, weight = None, size_average=None, reduce=None, reduction = 'mean', pos_weight = None):
+        if pos_weight != None:
+            for _ in range(3-pos_weight.dim()):
                 pos_weight = pos_weight.unsqueeze(dim=-1)
         super().__init__(weight, size_average, reduce, reduction, pos_weight)
-
-    def forward(self, input, target):
-        """
-        Calcola la perdita BCE con logit e one-hot encoding per il target.
-
-        :param input: Predizioni del modello.
-        :param target: Target ground-truth.
-        :return: Perdita calcolata.
-        """
-        target = torch.nn.functional.one_hot(target, num_classes=input.shape[1]).permute((0, 3, 1, 2)).float()
+    
+    def forward(self, input:torch.Tensor, target:torch.Tensor) -> torch.Tensor:
+        # Convert target to one-hot encoding
+        target = F.one_hot(target, num_classes=input.shape[1]).permute((0,3,1,2)).float()
         return super().forward(input, target)
 
-class FocalLoss(nn.Module):
-    def __init__(self, gamma=0, alpha=None, size_average=True):
-        """
-        Inizializza la Focal Loss per il bilanciamento delle classi sbilanciate.
 
-        :param gamma: Fattore di focalizzazione.
-        :param alpha: Peso opzionale per le classi (float, lista o tensor).
-        :param size_average: Se True, ritorna la perdita media.
-        """
+class FocalLoss(nn.Module):
+    def __init__(self, gamma:int=0, alpha=None, size_average:bool=True, activation:str='sigmoid'):
         super(FocalLoss, self).__init__()
         self.gamma = gamma
         self.alpha = alpha
-        if isinstance(alpha, (float, int)):
-            self.alpha = torch.Tensor([alpha, 1 - alpha])
-        if isinstance(alpha, list):
-            self.alpha = torch.Tensor(alpha)
+        self.eps = 1e-7
         self.size_average = size_average
 
-    def forward(self, input, target):
-        """
-        Calcola la Focal Loss.
+        if isinstance(alpha,(float,int)):
+            self.alpha = torch.Tensor([alpha, 1-alpha])
+        elif isinstance(alpha,list):
+            self.alpha = torch.Tensor(alpha)
 
-        :param input: Predizioni del modello (logit).
-        :param target: Target ground-truth.
-        :return: Perdita calcolata.
-        """
+        if activation=='sigmoid':
+            self.activation = lambda x: torch.sigmoid(x)
+        else:
+            self.activation = lambda x: torch.softmax(x,dim=1)
+
+    def forward(self, input:torch.Tensor, target:torch.Tensor) -> torch.Tensor:
+        # Flatten input if needed
         if input.dim() > 2:
-            input = input.view(input.size(0), input.size(1), -1)  # N,C,H,W => N,C,H*W
-            input = input.transpose(1, 2)  # N,C,H*W => N,H*W,C
-            input = input.contiguous().view(-1, input.size(2))  # N,H*W,C => N*H*W,C
+            input = input.view(input.size(0), input.size(1), -1).transpose(1, 2).contiguous().view(-1, input.size(2))
         target = target.view(-1, 1)
 
-        pt = torch.sigmoid(input)
-        pt = pt.gather(1, target)
-        pt = pt.view(-1)
-        logpt = torch.log(pt)
+        # Calculate probability and log-probability
+        pt = self.activation(input).gather(1, target).view(-1)
+        logpt = torch.log(pt + self.eps)
 
+        # Apply alpha weighting if specified
         if self.alpha is not None:
             if self.alpha.type() != input.data.type():
                 self.alpha = self.alpha.type_as(input.data)
             at = self.alpha.gather(0, target.data.view(-1))
             logpt = logpt * at
 
-        loss = -1 * (1 - pt) ** self.gamma * logpt
+        # Compute Focal Loss
+        loss = -((1 - pt) ** self.gamma) * logpt
         return loss.mean() if self.size_average else loss.sum()
 
-class ArcFaceLoss(nn.Module):
-    def __init__(self, scale=30.0, margin=0.5, weights=None, loss=None):
-        """
-        Inizializza la ArcFace Loss per il riconoscimento facciale.
 
-        :param scale: Fattore di scaling.
-        :param margin: Margine angolare aggiuntivo.
-        :param weights: Pesi opzionali per le classi.
-        :param loss: Funzione di perdita personalizzata (predefinita: CrossEntropyLoss).
-        """
+class ArcFaceLoss(nn.Module):
+    def __init__(self, scale:float=30.0, margin:float=0.5, weights=None, loss=None):
         super(ArcFaceLoss, self).__init__()
         self.scale = scale
         self.margin = margin
-        self.loss = nn.CrossEntropyLoss(weight=weights) if loss is None else loss(weight=weights)
+        self.loss = nn.CrossEntropyLoss(weight=weights) if loss is None else loss
 
-    def forward(self, logits, labels):
-        """
-        Calcola la ArcFace Loss.
+    def forward(self, input:torch.Tensor, labels:torch.Tensor):
+        # Apply margin
+        target_logits = torch.cos(torch.acos(torch.clamp(input, -1.0, 1.0)) + self.margin)
 
-        :param logits: Logit del modello (angoli coseni).
-        :param labels: Target ground-truth.
-        :return: Perdita calcolata.
-        """
-        # Calcola l'angolo con arccoseno
-        theta = torch.acos(torch.clamp(logits, -1.0, 1.0))
-        # Aggiungi il margine alla classe corretta
-        target_logits = torch.cos(theta + self.margin)
-        # Crea un one-hot encoding per il target
-        one_hot = F.one_hot(labels, num_classes=logits.size(1)).to(logits.dtype).permute((0, 3, 1, 2))
-        # Aggiorna i logit
-        logits_with_margin = logits * (1 - one_hot) + target_logits * one_hot
-        # Scala i logit
-        logits_with_margin *= self.scale
-        # Calcola la perdita
-        return self.loss(logits_with_margin, labels)
+        # Create one-hot encoded labels
+        one_hot = torch.zeros_like(input)
+        one_hot.scatter_(1, labels.unsqueeze(1).long(), 1)
+
+        # Apply scale and margin adjustments
+        target_logits = (one_hot * target_logits) + ((1.0 - one_hot) * input)
+        target_logits *= self.scale
+
+        # Compute loss
+        return self.loss(target_logits, labels)
+
+
+class CE_EntropyMinimization(nn.Module):
+    def __init__(self, entropy_weight=0.1):
+        super(CE_EntropyMinimization, self).__init__()
+        self.entropy_weight = entropy_weight
+        self.ce_loss = nn.CrossEntropyLoss()
+
+    def forward(self, input:torch.Tensor, targets:torch.Tensor):
+        # Compute standard cross-entropy loss
+        ce_loss = self.ce_loss(input, targets)
+
+        # Compute entropy regularization term
+        softmax_probs = F.softmax(input, dim=1)
+        entropy = -torch.sum(softmax_probs * torch.log(softmax_probs + 1e-10), dim=1).mean()
+
+        # Combine losses
+        total_loss = ce_loss + self.entropy_weight * entropy
+
+        return total_loss
