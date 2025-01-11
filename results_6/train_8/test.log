@@ -1,0 +1,21 @@
+2025-01-11 16:31:09,529 - device          : cuda:0
+2025-01-11 16:31:09,529 - folder          : 6
+2025-01-11 16:31:09,529 - file            : train_8
+2025-01-11 16:31:09,529 - norm_weights    : False
+2025-01-11 16:31:09,529 - mlp             : 0
+2025-01-11 16:31:09,529 - p               : 0.3
+2025-01-11 16:31:09,529 - vae             : False
+2025-01-11 16:31:09,529 - end
+
+2025-01-11 16:31:09,531 - Dataset Creati
+2025-01-11 16:31:09,531 - Test images: 1024
+2025-01-11 16:31:09,532 - Anomalies images: 476
+
+2025-01-11 16:31:09,532 - Dataloader Creati
+2025-01-11 16:31:09,532 - Test batches: 128
+2025-01-11 16:31:09,532 - Anomalies batches: 59
+
+2025-01-11 16:31:13,487 - Caricati i pesi: /raid/homespace/piecestola/space/ML4CV/results_6/train_8/ckpts/weights_mIoU_1.pt
+2025-01-11 16:31:13,487 - Modello caricato correttamente su cuda:0
+
+2025-01-11 16:31:13,487 - Testing t5 dataset

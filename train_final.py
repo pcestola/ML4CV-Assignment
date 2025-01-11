@@ -628,6 +628,25 @@ class ArcFaceLoss(nn.Module):
         # Calcola e restituisce la perdita
         loss = self.loss(target_logits, labels)
         return loss
+
+class CE_EntropyMinimization(nn.Module):
+    def __init__(self, entropy_weight=0.1):
+        super(CE_EntropyMinimization, self).__init__()
+        self.entropy_weight = entropy_weight
+        self.ce_loss = nn.CrossEntropyLoss()
+
+    def forward(self, logits, targets):
+        # Calcolo della Cross Entropy
+        ce_loss = self.ce_loss(logits, targets)
+
+        # Calcolo dell'entropia del softmax
+        softmax_probs = F.softmax(logits, dim=1)
+        entropy = -torch.sum(softmax_probs * torch.log(softmax_probs + 1e-10), dim=1).mean()
+
+        # Loss combinata: CE + penalizzazione dell'entropia
+        total_loss = ce_loss + self.entropy_weight * entropy
+
+        return total_loss
 # endregion
 
 # region MODELS
@@ -777,6 +796,7 @@ if __name__ == '__main__':
     parser.add_argument('--class_weights', action='store_true')
     parser.add_argument('--norm_weights', action='store_true')
     parser.add_argument('--p', type=float, default=0.3)
+    parser.add_argument('--entropy', type=float, default=0)
     # Caricamento
 
     # Parsing degli argomenti
@@ -811,7 +831,7 @@ if __name__ == '__main__':
     '''
 
     scores_ = [3.223254919052124, 8.324562072753906, 1000.07819366455078, 214.23089599609375, 500441.0986328125, 80.23406219482422, 74.35269927978516, 3.00116229057312, 14.900472640991211, 11.333002090454102, 404.04559326171875, 29.11901092529297, 995.0892333984375]
-    
+
     if args.crop:
         train_transforms = ComposeSync([
             RandomCropSync((args.crop,args.crop)),
@@ -981,6 +1001,9 @@ if __name__ == '__main__':
             criterion = ArcFaceLoss(weights=weights)
         elif args.activation == 'sigmoid':
             criterion = ArcFaceLoss(loss=BCELossModified(pos_weight=weights))
+    elif args.entropy != 0:
+        print(">>>>>> Entropia minima")
+        criterion = CE_EntropyMinimization(entropy_weight=args.entropy)
     else:
         if args.activation == 'softmax':
             criterion = nn.CrossEntropyLoss(weight=weights)
