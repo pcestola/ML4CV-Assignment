@@ -1,0 +1,58 @@
+2025-01-14 00:13:30,983 - device          : cuda:5
+2025-01-14 00:13:30,983 - model           : mobilenet
+2025-01-14 00:13:30,983 - mlp             : 0
+2025-01-14 00:13:30,983 - vae             : False
+2025-01-14 00:13:30,983 - epochs          : 50
+2025-01-14 00:13:30,983 - batch           : 16
+2025-01-14 00:13:30,983 - lr              : 0.0001
+2025-01-14 00:13:30,983 - crop            : 512
+2025-01-14 00:13:30,983 - optimizer       : adam
+2025-01-14 00:13:30,983 - biases          : False
+2025-01-14 00:13:30,983 - focal_loss      : 0
+2025-01-14 00:13:30,983 - activation      : sigmoid
+2025-01-14 00:13:30,984 - class_weights   : False
+2025-01-14 00:13:30,984 - norm_weights    : False
+2025-01-14 00:13:30,984 - p               : 0.3
+2025-01-14 00:13:30,984 - entropy         : 0
+2025-01-14 00:13:30,992 - Dataset Creati
+2025-01-14 00:13:30,993 - Training images: 5125
+2025-01-14 00:13:30,993 - Validation images: 1031
+
+2025-01-14 00:13:30,993 - Dataloader Creati
+2025-01-14 00:13:30,993 - Training batches: 320
+2025-01-14 00:13:30,993 - Validation batches: 128
+
+2025-01-14 00:13:33,043 - Model: deeplabv3plus_mobilenet
+
+2025-01-14 00:13:33,060 - Modello caricato correttamente su cuda:5
+
+2025-01-14 00:13:33,062 - Inizio del training
+2025-01-14 00:13:33,062 - optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: False
+    lr: 0.0001
+    maximize: False
+    weight_decay: 0.0001
+
+Parameter Group 1
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: False
+    lr: 1e-05
+    maximize: False
+    weight_decay: 0.0001
+)
+2025-01-14 00:13:33,062 - loss:      BCELossModified()
+2025-01-14 00:13:33,062 - epochs:    15
+2025-01-14 00:13:33,062 - name:      weights_0
+

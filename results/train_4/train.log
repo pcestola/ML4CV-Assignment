@@ -1,0 +1,60 @@
+2025-01-14 00:13:22,857 - device          : cuda:4
+2025-01-14 00:13:22,857 - model           : mobilenet
+2025-01-14 00:13:22,857 - mlp             : 0
+2025-01-14 00:13:22,857 - vae             : False
+2025-01-14 00:13:22,858 - epochs          : 50
+2025-01-14 00:13:22,858 - batch           : 16
+2025-01-14 00:13:22,858 - lr              : 0.0001
+2025-01-14 00:13:22,858 - crop            : 512
+2025-01-14 00:13:22,858 - optimizer       : adam
+2025-01-14 00:13:22,858 - biases          : False
+2025-01-14 00:13:22,858 - focal_loss      : 0
+2025-01-14 00:13:22,858 - activation      : softmax
+2025-01-14 00:13:22,858 - class_weights   : False
+2025-01-14 00:13:22,858 - norm_weights    : False
+2025-01-14 00:13:22,858 - p               : 0.3
+2025-01-14 00:13:22,858 - entropy         : 0
+2025-01-14 00:13:22,866 - Dataset Creati
+2025-01-14 00:13:22,866 - Training images: 5125
+2025-01-14 00:13:22,866 - Validation images: 1031
+
+2025-01-14 00:13:22,867 - Dataloader Creati
+2025-01-14 00:13:22,867 - Training batches: 320
+2025-01-14 00:13:22,867 - Validation batches: 128
+
+2025-01-14 00:13:24,577 - Model: deeplabv3plus_mobilenet
+
+2025-01-14 00:13:24,592 - Modello caricato correttamente su cuda:4
+
+2025-01-14 00:13:24,594 - Inizio del training
+2025-01-14 00:13:24,594 - optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: False
+    lr: 0.0001
+    maximize: False
+    weight_decay: 0.0001
+
+Parameter Group 1
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: False
+    lr: 1e-05
+    maximize: False
+    weight_decay: 0.0001
+)
+2025-01-14 00:13:24,594 - loss:      CrossEntropyLoss()
+2025-01-14 00:13:24,594 - epochs:    15
+2025-01-14 00:13:24,594 - name:      weights_0
+
+2025-01-14 00:16:34,423 - Epoch    Loss       Val Loss   mIoU       minIoU     maxIoU     LR      
+2025-01-14 00:16:34,424 - 0        1.269852   0.841728   0.227915   0.000000   0.799304   1.0e-04 , 1.0e-05 
