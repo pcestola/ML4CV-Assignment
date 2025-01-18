@@ -537,7 +537,7 @@ def train(model: nn.Module,
           logger:logging.Logger) -> None:
 
     # Scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=12, factor=0.5)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
 
     logger.info("Inizio del training")
     logger.info(f"optimizer: {optimizer}")
@@ -1022,7 +1022,6 @@ if __name__ == '__main__':
     criterion = criterion.to(args.device)
 
     # Avvio del training
-    '''
     loss_train, loss_valid = train(
         model,
         criterion,
@@ -1034,7 +1033,6 @@ if __name__ == '__main__':
         'weights_0',
         ckpts_dir,
         logger)
-    '''
     # endregion
 
     '''
@@ -1043,9 +1041,9 @@ if __name__ == '__main__':
     # region TRAINING2
 
     # Carico i pesi migliori del passo precedente
-    #directory = os.path.join(ckpts_dir,'weights_mIoU_0.pt')
-    #model.load_state_dict(torch.load(directory, map_location=args.device)['model_state_dict'])
-    #logger.info(f"\nCaricati i pesi in: {directory}\n")
+    directory = os.path.join(ckpts_dir,'weights_mIoU_0.pt')
+    model.load_state_dict(torch.load(directory, map_location=args.device)['model_state_dict'])
+    logger.info(f"\nCaricati i pesi in: {directory}\n")
 
     # Addestro tutti i parametri
     for param in model.parameters():
