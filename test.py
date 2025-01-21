@@ -431,10 +431,14 @@ if __name__ == '__main__':
     # Carico il modello
     weight_path = find_highest_file(ckpt_dir,'weights_mIoU_')
     #model = network.modeling.__dict__['deeplabv3plus_mobilenet'](num_classes=19, output_stride=16)
+    #model = network.modeling.__dict__['deeplabv3plus_mobilenet'](num_classes=21, output_stride=16)
     model = network.modeling.__dict__['deeplabv3plus_resnet101'](num_classes=21, output_stride=16)
 
     if args.norm_weights:
-        head = NormedConv(256,13,(1,1),(1,1))
+        head = nn.Sequential(
+            nn.Conv2d(256, 3, kernel_size=(1, 1), stride=(1, 1)),
+            NormedConv(3, 13, kernel_size=(1, 1), stride=(1, 1))
+        )
     elif args.mlp == 1:
         head = nn.Sequential(
             nn.Conv2d(256, 128, kernel_size=1, stride=1),

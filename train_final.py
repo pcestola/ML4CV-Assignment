@@ -829,7 +829,7 @@ if __name__ == '__main__':
         train_transforms = ComposeSync([
             RandomCropSync((args.crop,args.crop)),
             RandomHorizontalFlipSync(p=0.5),
-            RandomVerticalFlipSync(p=0.5),
+            #RandomVerticalFlipSync(p=0.5),
             ToTensorSync(),
             NormalizeSync(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             #TopScoringCrop(100,scores_)
@@ -912,8 +912,8 @@ if __name__ == '__main__':
     # Modifico la testa di classificazione
     if args.norm_weights:
         model.classifier.classifier[3] = nn.Sequential(
-            nn.Conv2d(256, 2, kernel_size=(1, 1), stride=(1, 1)),
-            NormedConv(2, 13, kernel_size=(1, 1), stride=(1, 1))
+            nn.Conv2d(256, 3, kernel_size=(1, 1), stride=(1, 1)),
+            NormedConv(3, 13, kernel_size=(1, 1), stride=(1, 1))
         )
         for layer in model.classifier.classifier[3]:
             if isinstance(layer, nn.Conv2d):
