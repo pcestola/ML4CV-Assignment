@@ -303,54 +303,6 @@ def test_model(model: nn.Module, test_loader: DataLoader, num_classes: int):
 # endregion
 
 # region TRAINING
-class VAE(nn.Module):
-    def __init__(self, input_dim, latent_dim):
-        """
-        input_dim: Numero di canali in input (C).
-        latent_dim: Dimensione dello spazio latente per pixel.
-        """
-        super(VAE, self).__init__()
-
-        # Encoder: Riduce progressivamente i canali tramite convoluzioni 1x1
-        self.encoder = nn.Sequential(
-            nn.Conv2d(input_dim, 128, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128, latent_dim, kernel_size=1),
-            nn.ReLU(inplace=True),
-        )
-
-        # Latent Space: Calcola \mu e \log\sigma^2
-        self.fc_mu = nn.Conv2d(latent_dim, latent_dim, kernel_size=1)  # Media
-        self.fc_logvar = nn.Conv2d(latent_dim, latent_dim, kernel_size=1)  # Log-varianza
-
-        # Decoder: Ricostruisce progressivamente i canali tramite convoluzioni 1x1
-        self.decoder = nn.Sequential(
-            nn.Conv2d(latent_dim, 128, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128, input_dim, kernel_size=1)
-        )
-
-    def encode(self, x):
-        h = self.encoder(x)
-        mu = self.fc_mu(h)
-        logvar = self.fc_logvar(h)
-        return mu, logvar
-
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        return mu + eps * std
-
-    def decode(self, z):
-        return self.decoder(z)
-
-    def forward(self, x):
-        mu, logvar = self.encode(x)
-        z = self.reparameterize(mu, logvar)
-        reconstructed = self.decode(z)
-        # TODO: perché tornava anche mu e logvar?
-        return reconstructed#, mu, logvar
-    
 class ParallelBlock(nn.Module):
     def __init__(self, *modules):
         super(ParallelBlock, self).__init__()
@@ -537,7 +489,7 @@ def train(model: nn.Module,
           logger:logging.Logger) -> None:
 
     # Scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=7, factor=0.5)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
 
     logger.info("Inizio del training")
     logger.info(f"optimizer: {optimizer}")
@@ -665,6 +617,179 @@ class NormedConv(nn.Conv2d):
         norm_x = F.normalize(x, p=2, dim=1)
         # Chiama il forward con input e pesi normalizzati
         return self.scale * F.conv2d(norm_x, norm_weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+
+
+class PrototypeHead(nn.Module):
+    def __init__(self, embed_dim, num_prototypes):
+        super().__init__()
+        self.prototypes = nn.Parameter(torch.randn(num_prototypes, embed_dim))
+        nn.init.xavier_normal_(self.prototypes)
+    
+    def forward(self, x):
+        B, D, H, W = x.shape
+        x_flat = x.permute(0, 2, 3, 1).reshape(-1, D)
+
+        dists = torch.cdist(x_flat, self.prototypes, p=2).pow(2)
+        dists = dists.view(B, H, W, -1).permute(0, 3, 1, 2)
+        
+        return -dists
+
+class PrototypeHeadMLP(nn.Module):
+    def __init__(self, embed_dim: int, hidden_dims: list, num_prototypes: int):
+        super().__init__()
+        
+        # 1) Prototipi nello spazio originale (es. 256)
+        self.prototypes = nn.Parameter(torch.randn(num_prototypes, embed_dim))
+        
+        # 2) MLP come serie di conv1x1 + ReLU
+        #    (equivale a una MLP su ogni pixel in parallelo)
+        layers = []
+        in_channels = embed_dim
+        for out_channels in hidden_dims:
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=1))
+            layers.append(nn.ReLU(inplace=True))
+            in_channels = out_channels
+        
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x):
+        """
+        x: Tensor shape (B, embed_dim, H, W)
+        Ritorna: Tensor shape (B, num_prototypes, H, W) con i logits = -distanza
+        """
+        # 1) Trasforma le feature del backbone in uno spazio nascosto
+        x = self.mlp(x)
+        
+        # 2) Trasforma i prototipi con la stessa MLP (f(w_c))
+        proto = self.prototypes.unsqueeze(-1).unsqueeze(-1)
+        proto = self.mlp(proto)
+        proto = proto.view(proto.size(0), -1)
+        
+        # 3) Distanza
+        B, D2, H, W = x.shape
+        x_flat = x.permute(0, 2, 3, 1).reshape(-1, D2)
+        
+        dists = torch.cdist(x_flat, proto, p=2).pow(2)
+        dists = dists.view(B, H, W, -1).permute(0, 3, 1, 2)
+
+        return -dists
+    
+class PrototypeHeadMLP2(nn.Module):
+    def __init__(self, embed_dim: int, hidden_dims: list, num_prototypes: int):
+        super().__init__()
+        
+        # 1) Prototipi nello spazio originale (es. 256)
+        self.prototypes = nn.Parameter(torch.randn(num_prototypes, hidden_dims[-1]))
+        
+        # 2) MLP come serie di conv1x1 + ReLU
+        #    (equivale a una MLP su ogni pixel in parallelo)
+        layers = []
+        in_channels = embed_dim
+        for out_channels in hidden_dims:
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=1))
+            layers.append(nn.ReLU(inplace=True))
+            in_channels = out_channels
+        
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x):
+        """
+        x: Tensor shape (B, embed_dim, H, W)
+        Ritorna: Tensor shape (B, num_prototypes, H, W) con i logits = -distanza
+        """
+        # 1) Trasforma le feature del backbone in uno spazio nascosto
+        x = self.mlp(x)
+        
+        # 3) Distanza
+        B, D2, H, W = x.shape
+        x_flat = x.permute(0, 2, 3, 1).reshape(-1, D2)
+        
+        dists = torch.cdist(x_flat, self.prototypes, p=2).pow(2)
+        dists = dists.view(B, H, W, -1).permute(0, 3, 1, 2)
+
+        return -dists
+    
+class PrototypeHeadArcFace(nn.Module):
+    def __init__(self, embed_dim: int, hidden_dims: list, num_prototypes: int):
+        super().__init__()
+        
+        # 1) Prototipi nello spazio finale
+        self.prototypes = nn.Parameter(torch.randn(num_prototypes, embed_dim))
+        
+        # 2) MLP per trasformare le feature (equivalente a una MLP per pixel)
+        layers = []
+        in_channels = embed_dim
+        for out_channels in hidden_dims:
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=1))
+            layers.append(nn.ReLU(inplace=True))
+            in_channels = out_channels
+        
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x):
+        
+        # 1) Trasforma le feature con la MLP
+        x = self.mlp(x)
+        
+        # 2) Normalizziamo le feature pixel-wise
+        B, D2, H, W = x.shape
+        x_flat = x.permute(0, 2, 3, 1).reshape(-1, D2)
+        x_flat = F.normalize(x_flat, p=2, dim=1)
+
+        # 3) Trasforma i prototipi con la stessa MLP (f(w_c))
+        proto = self.prototypes.unsqueeze(-1).unsqueeze(-1)
+        proto = self.mlp(proto)
+        proto = proto.view(proto.size(0), -1)
+
+        # 4) Normalizziamo i prototipi
+        proto = F.normalize(proto, p=2, dim=1)
+        
+        # 5) Prodotto scalare normalizzato tra feature e prototipi
+        logits = torch.mm(x_flat, proto.T)
+
+        # 6) Reshape a (B, num_prototypes, H, W)
+        logits = logits.view(B, H, W, -1).permute(0, 3, 1, 2)  
+        
+        return logits
+
+class PrototypeHeadArcFace2(nn.Module):
+    def __init__(self, embed_dim: int, hidden_dims: list, num_prototypes: int):
+        super().__init__()
+        
+        # 1) Prototipi nello spazio finale
+        self.prototypes = nn.Parameter(torch.randn(num_prototypes, hidden_dims[-1]))
+        
+        # 2) MLP per trasformare le feature (equivalente a una MLP per pixel)
+        layers = []
+        in_channels = embed_dim
+        for out_channels in hidden_dims:
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=1))
+            layers.append(nn.ReLU(inplace=True))
+            in_channels = out_channels
+        
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x):
+        
+        # 1) Trasforma le feature con la MLP
+        x = self.mlp(x)
+        
+        # 2) Normalizziamo le feature pixel-wise
+        B, D2, H, W = x.shape
+        x_flat = x.permute(0, 2, 3, 1).reshape(-1, D2)
+        x_flat = F.normalize(x_flat, p=2, dim=1)
+
+        # 3) Normalizziamo i prototipi
+        proto = F.normalize(self.prototypes, p=2, dim=1)
+        
+        # 5) Prodotto scalare normalizzato tra feature e prototipi
+        logits = torch.mm(x_flat, proto.T)
+
+        # 6) Reshape a (B, num_prototypes, H, W)
+        logits = logits.view(B, H, W, -1).permute(0, 3, 1, 2)  
+        
+        return logits
+        
 # endregion
 
 # region UTILS
@@ -687,32 +812,6 @@ def find_next_folder_name(parent_directory, prefix="folder_c_"):
     next_ci = max_ci + 1
     new_folder_name = f"{prefix}{next_ci}"
     return os.path.join(parent_directory, new_folder_name)
-
-def find_highest_file(parent_directory, prefix="file_c_", next=False):
-    # Pattern per estrarre il numero dai nomi dei file
-    pattern = re.compile(rf"{re.escape(prefix)}(\d+)")
-    
-    max_ci = -1  # Inizializza il massimo a -1 (nel caso non ci siano file)
-    highest_file = None  # Per salvare il file con il numero più alto
-    
-    # Scansiona i file nella directory
-    for item in os.listdir(parent_directory):
-        item_path = os.path.join(parent_directory, item)
-        if os.path.isfile(item_path):  # Controlla che sia un file
-            match = pattern.match(item)
-            if match:
-                ci = int(match.group(1))  # Estrai il numero c_i
-                if ci > max_ci:
-                    max_ci = ci
-                    highest_file = item_path  # Aggiorna il file con il numero più alto
-    
-    if next:
-        # Calcola il nome del file con c+1
-        next_file_name = f"{prefix}{max_ci + 1}"
-        next_file_path = os.path.join(parent_directory, next_file_name)
-        return highest_file, next_file_path
-
-    return highest_file
 
 def find_best_device() -> str:
     if torch.cuda.is_available():   
@@ -784,7 +883,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default = find_best_device())
     parser.add_argument('--model', type=str, default = 'resnet101')
     parser.add_argument('--mlp', type=int, default=0)
-    parser.add_argument('--vae', action='store_true')
+    parser.add_argument('--p', type=float, default=0)
     # Parametri addestramento
     parser.add_argument('--epochs', type=int, default=50)
     parser.add_argument('--batch', type=int, default=16)
@@ -792,12 +891,10 @@ if __name__ == '__main__':
     parser.add_argument('--crop', type=int, default=512)
     parser.add_argument('--optimizer', type=str, default='adam')
     # Parametri rete
-    parser.add_argument('--biases', action='store_true')
     parser.add_argument('--focal_loss', type=int, default=0)
     parser.add_argument('--activation', type=str, default='softmax')
     parser.add_argument('--class_weights', action='store_true')
-    parser.add_argument('--norm_weights', action='store_true')
-    parser.add_argument('--p', type=float, default=0.3)
+    parser.add_argument('--arc_face', action='store_true')
     parser.add_argument('--entropy', type=float, default=0)
     # Caricamento
 
@@ -829,7 +926,7 @@ if __name__ == '__main__':
         train_transforms = ComposeSync([
             RandomCropSync((args.crop,args.crop)),
             RandomHorizontalFlipSync(p=0.5),
-            RandomVerticalFlipSync(p=0.5),
+            #RandomVerticalFlipSync(p=0.5),
             ToTensorSync(),
             NormalizeSync(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             #TopScoringCrop(100,scores_)
@@ -869,17 +966,32 @@ if __name__ == '__main__':
     train_batch_size = args.batch
     valid_batch_size = 8
 
+    def seed_worker(worker_id):
+        worker_seed = 0
+        np.random.seed(worker_seed)
+        random.seed(worker_seed)
+
+    g_train = torch.Generator()
+    g_train.manual_seed(0)
+
+    g_valid = torch.Generator()
+    g_valid.manual_seed(0) 
+
     dataloader_train = DataLoader(dataset_train,
                                 batch_size=train_batch_size,
                                 pin_memory=True,
                                 num_workers=num_workers,
-                                drop_last=True)
+                                drop_last=True,
+                                worker_init_fn=seed_worker,
+                                generator=g_train)
 
     dataloader_valid = DataLoader(dataset_valid,
                                 batch_size=valid_batch_size,
                                 pin_memory=True,
                                 num_workers=num_workers,
-                                drop_last=True)
+                                drop_last=True,
+                                worker_init_fn=seed_worker,
+                                generator=g_valid)
 
     logger.info("Dataloader Creati")
     logger.info(f"Training batches: {len(dataloader_train)}")
@@ -892,103 +1004,28 @@ if __name__ == '__main__':
     # region MODEL
 
     # Carico il modello
-    if args.model == 'mobilenet':
-        model = network.modeling.__dict__['deeplabv3plus_mobilenet'](num_classes=21, output_stride=16)
-        #path = '/raid/homespace/piecestola/space/ML4CV/weights/deeplab_v3_plus_mobilenet_cityscapes_os16.pth' # Questo va con num_classes=19
-        path = '/raid/homespace/piecestola/space/ML4CV/weights/best_deeplabv3plus_mobilenet_voc_os16.pth'
-        model.load_state_dict(torch.load(path, map_location=args.device)['model_state'])
-        logger.info('Model: deeplabv3plus_mobilenet\n')
-    elif args.model == 'resnet101':
-        model = network.modeling.__dict__['deeplabv3plus_resnet101'](num_classes=21, output_stride=16)
-        path = '/raid/homespace/piecestola/space/ML4CV/weights/best_deeplabv3plus_resnet101_voc_os16.pth'
-        model.load_state_dict(torch.load(path, map_location=args.device)['model_state'])
-        logger.info('Model: deeplabv3plus_resnet101\n')
+    model = network.modeling.__dict__['deeplabv3plus_resnet101'](num_classes=21, output_stride=16)
+    path = '/raid/homespace/piecestola/space/ML4CV/weights/best_deeplabv3plus_resnet101_voc_os16.pth'
+    model.load_state_dict(torch.load(path, map_location=args.device)['model_state'])
+    logger.info('Model: deeplabv3plus_resnet101\n')
     
     # Parametri
-    #inv_freq = [3.2232590372125256, 8.324592511196576, 80.0768737988469, 214.22450728363324, 5434.782608695652, 80.23106546854943, 74.3549706297866, 3.001164451807301, 14.900464894504708, 11.332985788435822, 404.0404040404041, 29.118863199580684, 995.0248756218905]    
     inv_freq = [3.223254919052124, 8.324562072753906, 80.07819366455078, 214.23089599609375, 5441.0986328125, 80.23406219482422, 74.35269927978516, 3.00116229057312, 14.900472640991211, 11.333002090454102, 404.04559326171875, 29.11901092529297, 995.0892333984375]
-    biases = [-0.798974154154987, -1.9912375234849577, -4.370420465387046, -5.36234563542109, -8.600390783425212, -4.372368462678594, -4.295310268206912, -0.6937292370358547, -2.6319222852251736, -2.335341281874243, -5.999036815085944, -3.336440639367837, -6.901762232119984]
 
     # Modifico la testa di classificazione
-    if args.norm_weights:
-        model.classifier.classifier[3] = nn.Sequential(
-            nn.Conv2d(256, 3, kernel_size=(1, 1), stride=(1, 1)),
-            NormedConv(3, 13, kernel_size=(1, 1), stride=(1, 1))
-        )
-        for layer in model.classifier.classifier[3]:
-            if isinstance(layer, nn.Conv2d):
-                nn.init.xavier_uniform_(layer.weight)
-                if layer.bias is not None:
-                    nn.init.zeros_(layer.bias)
-    elif args.vae:
-        model.classifier.classifier[3] = ParallelBlock(
-            VAE(input_dim=256, latent_dim=64),
-            nn.Conv2d(256, 13, kernel_size=(1, 1), stride=(1, 1))
-        )
-        nn.init.xavier_uniform_(model.classifier.classifier[3].modules_list[1].weight)
-    elif args.mlp:
-        if args.mlp == 1:
-            mlp = nn.Sequential(
-                nn.Conv2d(256, 128, kernel_size=1, stride=1),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=args.p),
-                nn.Conv2d(128, 13, kernel_size=1, stride=1)
-            )
-        elif args.mlp == 2:
-            mlp = nn.Sequential(
-                nn.Conv2d(256, 128, kernel_size=1, stride=1),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=args.p),
-                nn.Conv2d(128, 64, kernel_size=1, stride=1),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=args.p),
-                nn.Conv2d(64, 13, kernel_size=1, stride=1)
-            )
-
-        # Inizializzazione Xavier per le convoluzioni 1x1
-        for layer in mlp:
-            if isinstance(layer, nn.Conv2d):
-                nn.init.xavier_uniform_(layer.weight)
-                if layer.bias is not None:
-                    nn.init.zeros_(layer.bias)
-
-        model.classifier.classifier[3] = mlp
-    else:
-        model.classifier.classifier[3] = nn.Conv2d(256, 13, kernel_size=(1, 1), stride=(1, 1))
-        if args.biases and args.activation == 'sigmoid':
-            model.classifier.classifier[3].bias.data = torch.tensor(biases, requires_grad=True)
-        else:
-            model.classifier.classifier[3].bias.data.zero_()
-        nn.init.xavier_uniform_(model.classifier.classifier[3].weight)
-
-    # TODO:
-    # RICONTROLLA CHE ARCFACELOSS SIA OK, CONTROLLA CHE NORMED CONV USI XAVIER
-    # I TRAIN LANCIATI: ARCFACELOSS DIM=2, NORMAL PATIENCE=12, NORMAL PATIENCE=10
-    
-    # CLONA QUESTO CODICE N VOLTE E SEPARA IN BASE A COSA DEVI FARE, NO?
-
-    # Inventa e prova un'idea basata sulla distanza (Simil ArcFace ma con la distanza)
-    # Prendi il miglior modello attuale e riavvia il training usando
-    # - una volta il topscoresampler
-    # - una volta la focal loss
+    #model.classifier.classifier[3] = PrototypeHeadMLP(embed_dim=256, hidden_dims=[128], num_prototypes=13)
+    model.classifier.classifier[3] = PrototypeHeadArcFace2(embed_dim=256, hidden_dims=[128], num_prototypes=13)
 
     # Carico il modello sul device
     model.to(args.device)
-    
+
     logger.info(f"Modello caricato correttamente su {args.device}\n")
+    # endregion
 
-    '''
-        TRAINING 1
-    '''
-    # region TRAINING1
 
-    # Freeze backbone (TODO: ha senso sbloccare solo classifier.classifier invece di classifier? (chatgpt dice si))
-    for param in model.parameters():
-        param.requires_grad = False
 
-    for param in model.classifier.classifier.parameters():
-        param.requires_grad = True
-
+    # region Training
+    
     # Ottimizzatore
     if args.optimizer == 'adam':
         optimizer = torch.optim.Adam([
@@ -1007,7 +1044,7 @@ if __name__ == '__main__':
     else:
         weights = None
 
-    if args.norm_weights:
+    if args.arc_face:
         if args.activation == 'softmax':
             criterion = ArcFaceLoss(weights=weights)
         elif args.activation == 'sigmoid':
@@ -1019,9 +1056,17 @@ if __name__ == '__main__':
             criterion = nn.CrossEntropyLoss(weight=weights)
         elif args.activation == 'sigmoid':
             criterion = BCELossModified(pos_weight=weights)
+    
     criterion = criterion.to(args.device)
-
+    print('=== CRITERIO ===>',criterion)
+    
     # Avvio del training
+    for param in model.parameters():
+        param.requires_grad = False
+
+    for param in model.classifier.classifier.parameters():
+        param.requires_grad = True
+
     loss_train, loss_valid = train(
         model,
         criterion,
@@ -1033,13 +1078,7 @@ if __name__ == '__main__':
         'weights_0',
         ckpts_dir,
         logger)
-    # endregion
-
-    '''
-        TRAINING 2
-    '''
-    # region TRAINING2
-
+    
     # Carico i pesi migliori del passo precedente
     directory = os.path.join(ckpts_dir,'weights_mIoU_0.pt')
     model.load_state_dict(torch.load(directory, map_location=args.device)['model_state_dict'])
@@ -1052,12 +1091,7 @@ if __name__ == '__main__':
     # Optimizer
     optimizer.param_groups[1]['lr'] = 0.1 * optimizer.param_groups[0]['lr']
 
-    # Loss
-    if not args.norm_weights and args.focal_loss:
-        criterion = FocalLoss(gamma=args.focal_loss, alpha=weights, activation=args.activation).to(args.device)
-
-    # Avvio del training
-    loss_train_, loss_valid_ = train(
+    loss_train, loss_valid = train(
         model,
         criterion,
         optimizer,
@@ -1069,21 +1103,14 @@ if __name__ == '__main__':
         ckpts_dir,
         logger)
 
-    # Salvo i parametri
-    '''
-    all_parameters = dict()
-    for name, value in args.__dict__.items():
-        if not name in ['device','lr','epochs']:
-            all_parameters[name] = value
-    torch.save(all_parameters, train_dir+'/params.pt')
-    '''
-
     # Salvo le loss
     with open(os.path.join(train_dir,'losses.pkl'), "wb") as f:
-        pickle.dump((loss_train+loss_train_, loss_valid+loss_valid_), f)
+        pickle.dump((loss_train, loss_valid), f)
+    
+    # endregion
+
+    torch.save(model.prototypes, os.path.join(ckpts_dir, "prototypes.pth"))
 
     # Rilascia il modello e i tensori
     del model
     gc.collect()
-    
-    # endregion

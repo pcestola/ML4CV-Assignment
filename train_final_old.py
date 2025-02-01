@@ -386,8 +386,6 @@ def old_train_epoch(model: nn.Module,
     loss_train /= samples_train
     return loss_train
 
-# MEMO: hai modificato l'ordine dei del per far funzionare
-# i norm_weights con ArcFace Loss
 def train_epoch(model: nn.Module,
                 loader_train: utils.data.DataLoader,
                 device: torch.device,
@@ -409,19 +407,19 @@ def train_epoch(model: nn.Module,
         out = model(images)
         del images
         
-        # Calcolo della loss
         loss = criterion(out, masks)
-        del masks, out
-        
         loss.backward()
+
         optimizer.step()
 
         loss_train += loss.item()
-        del loss
-        with torch.cuda.device(device):
+
+        # Rilascia variabili inutilizzate
+        del loss, masks, out
+        with torch.cuda.device(args.device):
             torch.cuda.empty_cache()
-            #gc.collect()
-            #torch.cuda.synchronize()
+            gc.collect()
+            torch.cuda.synchronize()
 
     loss_train /= len(dataloader_train)
     return loss_train
@@ -537,7 +535,7 @@ def train(model: nn.Module,
           logger:logging.Logger) -> None:
 
     # Scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=7, factor=0.5)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
 
     logger.info("Inizio del training")
     logger.info(f"optimizer: {optimizer}")
@@ -617,7 +615,7 @@ class ArcFaceLoss(nn.Module):
 
     def forward(self, logits, labels):
         # Calcola l'angolo theta aggiungendo il margine
-        target_logits = torch.cos(torch.arccos(torch.clamp(logits, -1.0+1e-7, 1.0-1e-7)) + self.margin)
+        target_logits = torch.cos(torch.acos(torch.clamp(logits, -1.0, 1.0)) + self.margin)
 
         # Crea un one-hot encoding dei label
         one_hot = torch.zeros_like(logits)
@@ -823,6 +821,15 @@ if __name__ == '__main__':
     path_valid_masks  =  path_train + '/annotations/validation/t4'
 
     # Trasformazioni
+    
+    '''
+    RandomCropResizeSync(
+        size=(args.crop, args.crop),      # Dimensione fissa dopo il resize
+        min_crop_size=(128, 128),         # Dimensioni minime del crop
+        aspect_ratio_range=(0.75, 1.3)    # Range del rapporto altezza/larghezza
+    )
+    '''
+
     scores_ = [3.223254919052124, 8.324562072753906, 1000.07819366455078, 214.23089599609375, 500441.0986328125, 80.23406219482422, 74.35269927978516, 3.00116229057312, 14.900472640991211, 11.333002090454102, 404.04559326171875, 29.11901092529297, 995.0892333984375]
 
     if args.crop:
@@ -893,9 +900,8 @@ if __name__ == '__main__':
 
     # Carico il modello
     if args.model == 'mobilenet':
-        model = network.modeling.__dict__['deeplabv3plus_mobilenet'](num_classes=21, output_stride=16)
-        #path = '/raid/homespace/piecestola/space/ML4CV/weights/deeplab_v3_plus_mobilenet_cityscapes_os16.pth' # Questo va con num_classes=19
-        path = '/raid/homespace/piecestola/space/ML4CV/weights/best_deeplabv3plus_mobilenet_voc_os16.pth'
+        model = network.modeling.__dict__['deeplabv3plus_mobilenet'](num_classes=19, output_stride=16)
+        path = '/raid/homespace/piecestola/space/ML4CV/weights/deeplab_v3_plus_mobilenet_cityscapes_os16.pth'
         model.load_state_dict(torch.load(path, map_location=args.device)['model_state'])
         logger.info('Model: deeplabv3plus_mobilenet\n')
     elif args.model == 'resnet101':
@@ -911,15 +917,8 @@ if __name__ == '__main__':
 
     # Modifico la testa di classificazione
     if args.norm_weights:
-        model.classifier.classifier[3] = nn.Sequential(
-            nn.Conv2d(256, 3, kernel_size=(1, 1), stride=(1, 1)),
-            NormedConv(3, 13, kernel_size=(1, 1), stride=(1, 1))
-        )
-        for layer in model.classifier.classifier[3]:
-            if isinstance(layer, nn.Conv2d):
-                nn.init.xavier_uniform_(layer.weight)
-                if layer.bias is not None:
-                    nn.init.zeros_(layer.bias)
+        model.classifier.classifier[3] = NormedConv(256,13,(1,1),(1,1))
+        nn.init.xavier_uniform_(model.classifier.classifier[3].weight)
     elif args.vae:
         model.classifier.classifier[3] = ParallelBlock(
             VAE(input_dim=256, latent_dim=64),
@@ -961,17 +960,6 @@ if __name__ == '__main__':
             model.classifier.classifier[3].bias.data.zero_()
         nn.init.xavier_uniform_(model.classifier.classifier[3].weight)
 
-    # TODO:
-    # RICONTROLLA CHE ARCFACELOSS SIA OK, CONTROLLA CHE NORMED CONV USI XAVIER
-    # I TRAIN LANCIATI: ARCFACELOSS DIM=2, NORMAL PATIENCE=12, NORMAL PATIENCE=10
-    
-    # CLONA QUESTO CODICE N VOLTE E SEPARA IN BASE A COSA DEVI FARE, NO?
-
-    # Inventa e prova un'idea basata sulla distanza (Simil ArcFace ma con la distanza)
-    # Prendi il miglior modello attuale e riavvia il training usando
-    # - una volta il topscoresampler
-    # - una volta la focal loss
-
     # Carico il modello sul device
     model.to(args.device)
     
@@ -1002,6 +990,7 @@ if __name__ == '__main__':
         ], weight_decay=1e-4)
     
     # Loss
+    # TODO: sistema la questione pesi per la FocalLoss. criterion = nn.CrossEntropyLoss(weight=...)
     if args.class_weights:
         weights = torch.tensor(inv_freq, device=args.device, requires_grad=False)
     else:
@@ -1013,6 +1002,7 @@ if __name__ == '__main__':
         elif args.activation == 'sigmoid':
             criterion = ArcFaceLoss(loss=BCELossModified(pos_weight=weights))
     elif args.entropy != 0:
+        print(">>>>>> Entropia minima")
         criterion = CE_EntropyMinimization(entropy_weight=args.entropy)
     else:
         if args.activation == 'softmax':
