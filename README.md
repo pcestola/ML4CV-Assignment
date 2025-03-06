@@ -19,6 +19,13 @@ The main components of the project include a Jupyter Notebook for execution and 
 ├── ckpts/              # Folder containing trained model weights (.pt files)
 ├── README.md           # This document
 ```
+The `main.ipynb` file is designed to summarize the entire workflow, including training, testing, and the ablation study.
+
+All custom functions and classes are contained within the `src` library. However, for clarity and ease of access, I have copied the most relevant functions directly into `main.ipynb`, ensuring that key parts of the implementation can be easily referenced without navigating through the library files. The remaining functions are imported from `src`.
+
+For completeness, I have also included the `train.py` and `test.py` files, which were used to perform the training and testing processes. Their results are documented within `main.ipynb`.
+
+Additionally, the results of the hyperparameter tuning and ablation study are stored in `tuning.csv` and `ablation.csv`, respectively.
 
 ## Setup
 This project is designed to run on Google Colab.
