@@ -23,9 +23,15 @@ The `main.ipynb` file is designed to summarize the entire workflow, including tr
 
 All custom functions and classes are contained within the `src` library. However, for clarity and ease of access, I have copied the most relevant functions directly into `main.ipynb`, ensuring that key parts of the implementation can be easily referenced without navigating through the library files. The remaining functions are imported from `src`.
 
-For completeness, I have also included the `train.py` and `test.py` files, which were used to perform the training and testing processes. Their results are documented within `main.ipynb`.
+The results of the hyperparameter tuning and ablation study are stored in `tuning.csv` and `ablation.csv`, respectively.
 
-Additionally, the results of the hyperparameter tuning and ablation study are stored in `tuning.csv` and `ablation.csv`, respectively.
+For completeness, I have also included the `train.py` and `test.py` files, which were used to perform the training and testing processes. Their results are documented within `main.ipynb`. To launch the training and testing processes, use the following commands:
+
+`python train.py --backbone resnet101 --head distance --dataset cityscapes --loss fl+h --gamma 0.1 --gamma_focal 2.0`
+
+This will produce a file `train_n.py` for some n inside the `/results` folder, to test use:
+
+`python test.py --file train_n.py --backbone resnet101 --head distance --dataset cityscapes`
 
 ## Setup
 This project is designed to run on Google Colab.
