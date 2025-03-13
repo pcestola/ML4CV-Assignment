@@ -11,15 +11,16 @@ This project implements semantic segmentation combined with anomaly detection fo
 │   ├── train.py        # Training routines and model architectures
 │   ├── test.py         # Testing routines and evaluation metrics
 │   └── utils.py        # Utility functions for visualization and logging
-├── network/            # External repository code (DeepLabv3+ implementation)
-├── data/               # Dataset files
 ├── ckpts/              # Model checkpoints and result files
 │   ├── weights.pt      # Model weights (saved after executing main.ipynb)
 │   ├── tuning.csv      # Hyperparameter tuning results
 │   └── ablation.csv    # Ablation study results
-├── train.py            # ...
-├── test.py             # ...
+├── network/            # External repository code (DeepLabv3+ implementation)
+├── data/               # Dataset folder
+├── train.py            # Original training script for standalone execution
+├── test.py             # Original testing script for standalone execution
 └── README.md           # This documentation file
+
 ```
 The primary workflow is defined in `main.ipynb`, which integrates all stages: environment setup, data loading, model building, training and evaluation. Custom modules supporting the pipeline are located in the `lib` directory, while external code in the `network` folder and pre-trained weights are sourced from this [repository](https://git01lab.cs.univie.ac.at/est-gan/deeplabv3plus-pytorch).
 
